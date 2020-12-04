@@ -1,32 +1,35 @@
-FROM balenalib/rpi-raspbian:latest
+FROM node:12-alpine AS build
 
-ARG ARCH=armv6l
-ARG NODE_VERSION=8.17.0
+RUN set -x \
+  && apk add --no-cache --virtual .build-deps \
+    build-base \
+    linux-headers \
+    eudev-dev \
+    python \
+    git \
+  && git clone https://github.com/espruino/EspruinoHub /tmp/espruinohub \
+  && cd /tmp/espruinohub \
+  && npm i --production --verbose \
+  && apk del .build-deps \
+  && mkdir /app \
+  && mv /tmp/espruinohub/node_modules \
+    /tmp/espruinohub/lib \
+    /tmp/espruinohub/index.js \
+    /tmp/espruinohub/config.json \
+    /tmp/espruinohub/www \
+    /tmp/espruinohub/log \
+    /app/ \
+  && rm -rf /tmp/*
 
-RUN apt-get update \
- && apt-get install -y bluetooth \
-                       bluez \
-                       libbluetooth-dev \
-                       libudev-dev \
-                       mosquitto-clients \
-                       build-essential \
-                       python3 \
-                       ca-certificates \
- && apt-get clean
+FROM node:12-alpine
 
-RUN update-ca-certificates --fresh
+COPY --from=build /app /app
 
-RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH.tar.gz" \
- && tar -xzf "node-v$NODE_VERSION-linux-$ARCH.tar.gz" -C /usr/local --strip-components=1 \
- && rm "node-v$NODE_VERSION-linux-$ARCH.tar.gz"
+RUN set -x \
+  && apk add --no-cache tzdata
 
-ADD / /EspruinoHub
+VOLUME /app/log
 
-WORKDIR /EspruinoHub
+WORKDIR /app
 
-RUN npm install \
- && npm cache clean --force
-
-VOLUME ["/EspruinoHub/log"]
-
-ENTRYPOINT ["node", "index.js"]
+CMD [ "node", "index.js", "-c", "/data/config.json" ]

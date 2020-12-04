@@ -25,7 +25,7 @@ These instructions install up to date Node.js and Node-RED - however it can take
 ```
 sudo apt-get update
 # OPTIONAL: Update everything to latest versions
-sudo apt-get upgrade -y 
+sudo apt-get upgrade -y
 # Get required packages
 sudo apt-get install -y build-essential python-rpi.gpio nodejs nodered git-core
 # OPTIONAL: Install a modern version of nodejs and nodered
@@ -61,7 +61,7 @@ You can now type `./start.sh` to run EspruinoHub, but it's worth checking out th
 # Install Node, Bluetooth, etc
 sudo apt-get update
 # OPTIONAL: Update everything to latest versions
-sudo apt-get upgrade -y 
+sudo apt-get upgrade -y
 # Get required packages
 sudo apt-get install -y git-core nodejs npm build-essential mosquitto mosquitto-clients bluetooth bluez libbluetooth-dev libudev-dev
 # Now get EspruinoHub
@@ -146,11 +146,15 @@ Run with Docker
 
 Build on Raspberry Pi Zero:
 
-    docker build -t espruino/espruinohub:armhf https://github.com/espruino/EspruinoHub.git
+    docker build --rm --no-cache --tag espruino/espruinohub https://github.com/espruino/EspruinoHub.git
 
 Run from the directory containing your `config.json`:
 
-    docker run -d -v $PWD/config.json:/EspruinoHub/config.json:ro --restart=always --net=host --name espruinohub espruino/espruinohub:armhf
+    docker run -d -v $PWD/config.json:/data/config.json:ro --restart=always --net=host --name espruinohub espruino/espruinohub
+
+Environment Variables:
+
+    TZ - timezone in docker
 
 Usage
 -----
@@ -230,7 +234,7 @@ Data that is received via bluetooth advertising will be relayed over MQTT in the
   * `2a6e` decodes to `temp` (Temperature in C)
   * `2a6f` decodes to `humidity` (Humidity in %)
   * `ffff` decodes to `data` (This is not a standard - however it's useful for debugging or quick tests)
-* `/ble/json/DEVICE/UUID` - Decoded service data (as above) as JSON, eg `/ble/json/DEVICE/1809 => {"temp":16.5}` 
+* `/ble/json/DEVICE/UUID` - Decoded service data (as above) as JSON, eg `/ble/json/DEVICE/1809 => {"temp":16.5}`
 * `/ble/advertise/DEVICE/espruino` - If manufacturer data is broadcast Espruino's manufacturer ID `0x0590` **and** it is valid JSON, it is rebroadcast. If an object like `{"a":5,"b":10}` is sent, `/ble/advertise/DEVICE/a` and `/ble/advertise/DEVICE/b` will also be sent. (A JSON5 parser is used, so the more compact `{a:5,b:10}` is also valid).
 
 You can take advantage of Espruino's manufacturer ID `0x0590` to relay JSON over
@@ -323,7 +327,7 @@ However, you can also request historical data by sending the JSON:
 {
   "topic" : "/hist/hour/ble/temp/f5:47:c8:0b:49:04",
   "interval" : "minute",
-  "age" : 6  
+  "age" : 6
 }
 ```
 
@@ -351,7 +355,7 @@ Requests can be of the form:
   "age" : 1, // hours
   // or:
   "from" : "1 July 2018",
-  "to" : "5 July 2018"     (or anything that works in new Date(...))  
+  "to" : "5 July 2018"     (or anything that works in new Date(...))
 }
 ```
 
